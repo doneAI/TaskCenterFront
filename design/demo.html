@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分布式任务调度系统管理后台 - 效果展示</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #0dcaf0;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+        }
+
+        body {
+            background-color: #f5f6fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            color: white !important;
+        }
+
+        .sidebar {
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            min-height: calc(100vh - 56px);
+        }
+
+        .sidebar .nav-link {
+            color: #6c757d;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 4px 8px;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+            color: var(--primary-color);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .main-content {
+            padding: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .metric-card.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .metric-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .metric-card.danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-faulty {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .gpu-card {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .gpu-card.faulty {
+            border-left-color: var(--danger-color);
+        }
+
+        .gpu-card.offline {
+            border-left-color: var(--warning-color);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .btn-action {
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .alert-item {
+            border-left: 4px solid;
+            margin-bottom: 10px;
+        }
+
+        .alert-critical {
+            border-left-color: var(--danger-color);
+        }
+
+        .alert-warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .alert-info {
+            border-left-color: var(--info-color);
+        }
+
+        .demo-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .feature-highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 演示标识 -->
+    <div class="demo-badge">
+        <i class="bi bi-eye"></i> 效果展示
+    </div>
+
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-cpu"></i> 分布式任务调度系统 - 管理后台
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text">
+                    <i class="bi bi-circle-fill text-success"></i> 系统运行中
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 侧边栏 -->
+            <div class="col-md-2 sidebar">
+                <nav class="nav flex-column">
+                    <a class="nav-link active" href="#dashboard">
+                        <i class="bi bi-speedometer2"></i> 系统概览
+                    </a>
+                    <a class="nav-link" href="#gpu">
+                        <i class="bi bi-gpu-card"></i> GPU管理
+                    </a>
+                    <a class="nav-link" href="#tasks">
+                        <i class="bi bi-list-task"></i> 任务监控
+                    </a>
+                    <a class="nav-link" href="#health">
+                        <i class="bi bi-heart-pulse"></i> 健康检查
+                    </a>
+                    <a class="nav-link" href="#alerts">
+                        <i class="bi bi-exclamation-triangle"></i> 告警管理
+                    </a>
+                    <a class="nav-link" href="#settings">
+                        <i class="bi bi-gear"></i> 系统设置
+                    </a>
+                </nav>
+            </div>
+
+            <!-- 主内容区 -->
+            <div class="col-md-10 main-content">
+                <!-- 功能特性介绍 -->
+                <div class="feature-highlight">
+                    <h2><i class="bi bi-star"></i> 管理后台功能特性</h2>
+                    <p class="mb-0">基于现代化Web技术构建的分布式任务调度系统管理界面，提供直观的监控和管理功能。</p>
+                </div>
+
+                <!-- 功能网格 -->
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <h5>实时监控仪表板</h5>
+                        <p>提供系统关键指标的实时监控，包括活跃GPU数量、任务队列状态、执行趋势图表等。</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-gpu-card"></i>
+                        </div>
+                        <h5>GPU节点管理</h5>
+                        <p>支持GPU节点的注册、状态监控、故障处理、按任务类型查询等功能，提供完整的GPU生命周期管理。</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-list-task"></i>
+                        </div>
+                        <h5>任务执行监控</h5>
+                        <p>实时监控任务执行状态，包括排队、处理中、已完成、失败等状态统计，支持任务详情查看。</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <h5>系统健康检查</h5>
+                        <p>全面的系统健康状态监控，包括GPU健康、队列健康、集群状态等多维度健康指标。</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <h5>智能告警管理</h5>
+                        <p>支持多级别告警规则配置，实时告警通知，告警确认和处理，确保系统稳定运行。</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        <h5>灵活配置管理</h5>
+                        <p>支持API配置、刷新间隔设置、系统参数调整等，提供灵活的配置管理功能。</p>
+                    </div>
+                </div>
+
+                <!-- 系统概览演示 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3><i class="bi bi-speedometer2"></i> 系统概览仪表板</h3>
+                        <p class="text-muted">实时显示系统关键指标和运行状态</p>
+                    </div>
+                </div>
+
+                <!-- 关键指标卡片 -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card success">
+                            <div class="card-body text-center">
+                                <div class="metric-value">12</div>
+                                <div class="metric-label">活跃GPU</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card">
+                            <div class="card-body text-center">
+                                <div class="metric-value">1,247</div>
+                                <div class="metric-label">总任务数</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card warning">
+                            <div class="card-body text-center">
+                                <div class="metric-value">23</div>
+                                <div class="metric-label">队列长度</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card danger">
+                            <div class="card-body text-center">
+                                <div class="metric-value">3</div>
+                                <div class="metric-label">失败任务</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="row mb-4">
+                    <div class="col-md-8 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-graph-up"></i> 任务执行趋势</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="taskTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> GPU状态分布</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="gpuStatusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GPU管理演示 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3><i class="bi bi-gpu-card"></i> GPU节点管理</h3>
+                        <p class="text-muted">GPU节点的注册、监控、故障处理等管理功能</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-success">12</h5>
+                                <p class="card-text">活跃GPU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning">2</h5>
+                                <p class="card-text">离线GPU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger">1</h5>
+                                <p class="card-text">故障GPU</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-info">15</h5>
+                                <p class="card-text">总GPU数</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GPU列表演示 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">GPU节点列表</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>GPU ID</th>
+                                        <th>主机名</th>
+                                        <th>IP地址</th>
+                                        <th>状态</th>
+                                        <th>支持任务类型</th>
+                                        <th>当前任务</th>
+                                        <th>最后心跳</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="gpu-card">
+                                        <td>gpu_001</td>
+                                        <td>gpu-server-01</td>
+                                        <td>192.168.1.100</td>
+                                        <td><span class="status-badge status-online">活跃</span></td>
+                                        <td>2, 3, 4</td>
+                                        <td>2/4</td>
+                                        <td>2024-01-15 14:30:25</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary btn-action">
+                                                <i class="bi bi-heart-pulse"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning btn-action">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success btn-action">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="gpu-card">
+                                        <td>gpu_002</td>
+                                        <td>gpu-server-02</td>
+                                        <td>192.168.1.101</td>
+                                        <td><span class="status-badge status-online">活跃</span></td>
+                                        <td>2, 5, 6</td>
+                                        <td>1/4</td>
+                                        <td>2024-01-15 14:30:20</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary btn-action">
+                                                <i class="bi bi-heart-pulse"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning btn-action">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success btn-action">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="gpu-card faulty">
+                                        <td>gpu_003</td>
+                                        <td>gpu-server-03</td>
+                                        <td>192.168.1.102</td>
+                                        <td><span class="status-badge status-faulty">故障</span></td>
+                                        <td>3, 4, 7</td>
+                                        <td>0/4</td>
+                                        <td>2024-01-15 14:25:10</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary btn-action">
+                                                <i class="bi bi-heart-pulse"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning btn-action">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success btn-action">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 任务监控演示 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3><i class="bi bi-list-task"></i> 任务执行监控</h3>
+                        <p class="text-muted">实时监控任务执行状态和进度</p>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-2 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-primary">15</h5>
+                                <p class="card-text">排队中</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-warning">8</h5>
+                                <p class="card-text">处理中</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-success">1,156</h5>
+                                <p class="card-text">已完成</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-danger">3</h5>
+                                <p class="card-text">失败</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="card text-center">
+                                <h5 class="card-title text-info">1</h5>
+                                <p class="card-text">超时</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title text-secondary">1,183</h5>
+                                <p class="card-text">总计</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 健康检查演示 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3><i class="bi bi-heart-pulse"></i> 系统健康检查</h3>
+                        <p class="text-muted">多维度系统健康状态监控</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">系统健康状态</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h6>整体状态</h6>
+                                        <span class="status-badge status-online">HEALTHY</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6>检查时间</h6>
+                                        <small class="text-muted">2024-01-15 14:30:25</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">组件健康状态</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <strong>GPU健康:</strong>
+                                    <span class="status-badge status-online">HEALTHY</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>队列健康:</strong>
+                                    <span class="status-badge status-online">HEALTHY</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>活跃GPU:</strong> 12
+                                </div>
+                                <div class="mb-2">
+                                    <strong>总GPU:</strong> 15
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 告警管理演示 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3><i class="bi bi-exclamation-triangle"></i> 告警管理</h3>
+                        <p class="text-muted">系统告警监控和处理</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">告警列表</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-warning alert-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>GPU故障告警</strong>
+                                            <p class="mb-1">GPU节点 gpu_003 检测到故障，请及时处理</p>
+                                            <small class="text-muted">2024-01-15 14:25:10</small>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary">确认</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info alert-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>队列长度告警</strong>
+                                            <p class="mb-1">任务队列长度超过阈值，当前长度: 23</p>
+                                            <small class="text-muted">2024-01-15 14:20:15</small>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-sm btn-outline-secondary">确认</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">告警统计</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <strong>严重告警:</strong> 1
+                                </div>
+                                <div class="mb-2">
+                                    <strong>警告告警:</strong> 2
+                                </div>
+                                <div class="mb-2">
+                                    <strong>信息告警:</strong> 5
+                                </div>
+                                <div class="mb-2">
+                                    <strong>已确认:</strong> 3
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技术特性 -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h3><i class="bi bi-gear"></i> 技术特性</h3>
+                        <p class="text-muted">基于现代化Web技术构建的管理界面</p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-phone" style="font-size: 2rem; color: var(--primary-color);"></i>
+                                <h5 class="mt-2">响应式设计</h5>
+                                <p class="text-muted">支持桌面和移动设备，自适应不同屏幕尺寸</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-lightning" style="font-size: 2rem; color: var(--primary-color);"></i>
+                                <h5 class="mt-2">实时更新</h5>
+                                <p class="text-muted">自动刷新数据，支持手动刷新，实时监控系统状态</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-palette" style="font-size: 2rem; color: var(--primary-color);"></i>
+                                <h5 class="mt-2">现代化UI</h5>
+                                <p class="text-muted">使用Bootstrap 5和渐变色彩，提供直观的用户体验</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 使用说明 -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-info-circle"></i> 使用说明</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>快速开始</h6>
+                                        <ol>
+                                            <li>确保调度系统正在运行</li>
+                                            <li>在浏览器中打开 <code>index.html</code></li>
+                                            <li>配置API连接信息</li>
+                                            <li>开始监控和管理</li>
+                                        </ol>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>主要功能</h6>
+                                        <ul>
+                                            <li>实时系统监控</li>
+                                            <li>GPU节点管理</li>
+                                            <li>任务执行监控</li>
+                                            <li>健康状态检查</li>
+                                            <li>告警管理</li>
+                                            <li>系统配置</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <a href="index.html" class="btn btn-primary">
+                                        <i class="bi bi-play"></i> 启动管理后台
+                                    </a>
+                                    <a href="README.md" class="btn btn-outline-primary ms-2">
+                                        <i class="bi bi-book"></i> 查看文档
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            // 任务执行趋势图
+            const taskTrendCtx = document.getElementById('taskTrendChart').getContext('2d');
+            new Chart(taskTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        label: '完成任务',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: '#198754',
+                        backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: '失败任务',
+                        data: [2, 3, 1, 4, 1, 2],
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+
+            // GPU状态分布图
+            const gpuStatusCtx = document.getElementById('gpuStatusChart').getContext('2d');
+            new Chart(gpuStatusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['活跃', '离线', '故障'],
+                    datasets: [{
+                        data: [12, 2, 1],
+                        backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
