@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { message } from 'antd';
 
 // API配置
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api/v2';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://34.54.181.225:80/api/v2';
 const API_KEY = process.env.REACT_APP_API_KEY || 'xfsdfs3fsdfsdfasdfjoiojg';
 
 // 创建axios实例
